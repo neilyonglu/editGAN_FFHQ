@@ -119,12 +119,20 @@ def test(args, resume, steps,  latent_sv_folder='', skip_exist=False):
     all_images = []
     all_id = []
 
-    curr_images_all = glob.glob(args['testing_data_path'] +  "*/*")
-    curr_images_all = [data for data in curr_images_all if ('jpg' in data or 'webp' in data or 'png' in data  or 'jpeg' in data or 'JPG' in data) and not os.path.isdir(data)  and not 'npy' in data ]
+    # curr_images_all = glob.glob(args['testing_data_path'] +  "*/*")
+    # curr_images_all = [data for data in curr_images_all if ('jpg' in data or 'webp' in data or 'png' in data  or 'jpeg' in data or 'JPG' in data) and not os.path.isdir(data)  and not 'npy' in data ]
 
-    for i, image in enumerate(curr_images_all):
-        all_id.append(image.split("/")[-1].split(".")[0])
-        all_images.append(image)
+    # for i, image in enumerate(curr_images_all):
+    #     all_id.append(image.split("/")[-1].split(".")[0])
+    #     all_images.append(image)
+
+    curr_images_all = glob.glob(args['testing_data_path'] + "/**/*", recursive=True)
+    curr_images_all = [data for data in curr_images_all if any(ext in data.lower() for ext in ['.jpg', '.webp', '.png', '.jpeg']) and not os.path.isdir(data)]
+
+    for i, image_path in enumerate(curr_images_all):
+        with Image.open(image_path) as img:
+            all_id.append(os.path.basename(image_path).split(".")[0])
+            all_images.append(image_path)
 
     print("All files, " , len(all_images))
 
@@ -134,7 +142,7 @@ def test(args, resume, steps,  latent_sv_folder='', skip_exist=False):
 
         print("Curr dir,", id)
 
-        sv_folder = os.path.join(latent_sv_folder,  id, 'crop_latent_' + str(steps))
+        sv_folder = os.path.join(latent_sv_folder, id, 'crop_latent_' + str(steps))
 
         loss_before_opti, loss_after_opti , all_final_latent, all_final_noise = embed_one_example(args, all_images[i],
                                                                                                   stylegan_encoder, g_all,
@@ -179,9 +187,19 @@ def main(args, resume):
 
     optimizer = optim.Adam(stylegan_encoder.parameters(), lr=args['lr'])
     inter = Interpolate(args['im_size'][1], 'bilinear')
-    images_all = glob.glob(args['training_data_path'] + "/*")
 
-    images_all = [data for data in images_all if 'jpg' in data or 'webp' in data or 'png' in data]
+    # original version for fetching images
+    # images_all = glob.glob(args['training_data_path'] + "/*")
+    # images_all = [data for data in images_all if 'jpg' in data or 'webp' in data or 'png' in data]
+
+    # new version for fetching images which including in folders
+    extensions = ['.jpg', '.webp', '.png']
+    images_all = []
+    for root, dirs, files in os.walk(args['training_data_path']):
+            for file in files:
+                if any(file.endswith(ext) for ext in extensions):
+                    images_all.append(os.path.join(root, file))
+
     if args['debug']:
         images_all = images_all[:1]
     print( "Training data length, ", len(images_all))

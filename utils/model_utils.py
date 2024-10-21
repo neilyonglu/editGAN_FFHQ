@@ -300,7 +300,7 @@ def prepare_model(args, classfier_checkpoint_path="", classifier_iter=10000, num
         g_all = nn.DataParallel(g_all, device_ids=device_ids).cuda()
 
     elif args['stylegan_ver'] == "2":
-        g_all = Stylegan2Generator(res, 512, 8, channel_multiplier=2, randomize_noise=False)
+        g_all = Stylegan2Generator(res, 512, 2, channel_multiplier=1, randomize_noise=False) # StyleGAN2ADA only have 2 mlp
         checkpoint = torch.load(args['stylegan_checkpoint'])
 
         print("Load stylegan from, " , args['stylegan_checkpoint'], " at res, ", str(res))

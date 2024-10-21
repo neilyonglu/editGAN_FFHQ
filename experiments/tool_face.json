@@ -4,7 +4,7 @@
   "num_class": 32,
   "n_latent": 16,
   "avg_latent": "",
-  "stylegan_checkpoint": "./checkpoint/stylegan_pretrain/stylegan2_networks_stylegan2-car-config-f.pt",
+  "stylegan_checkpoint": "./checkpoint/stylegan2ada_pretrain/stylegan2ada_ffhq256x256_22600.pt",
   "encoder_checkpoint": "./checkpoint/encoder_pretrain/BEST_loss2.841871976852417.pth",
   "classfier_checkpoint": "./checkpoint/datasetgan_pretrain/classifier",
   "root_path":  "./static/",

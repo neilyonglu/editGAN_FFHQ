@@ -12,7 +12,7 @@ Official code and tool release for:
 
 - Python 3.8.
 
-- The code is tested with CUDA 12.6.
+- The code is tested with CUDA 11.8.
 
 - All results are based on NVIDIA GeForce RTX 4080 GPU with 16GB RAM. 
 
@@ -25,6 +25,7 @@ pip install -r requirements.txt
 - On Windows, the compilation requires Microsoft Visual Studio to be in PATH. We recommend installing Visual Studio Community Edition and adding it into PATH using "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" and "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\bin\Hostx64\x64".
     > If after installing the "Build Tools for Visual Studio 2022" and doing all that was recommended in the other answers, you still can't find the the file in the location mentioned (no Build folder inside Auxiliary) make sure you **Install "Desktop Development With C++ Workload"**, because vcvarsall.bat is part of C++ workload. (In VS, go Tools menu -> Get Tools and Features -> Install the Desktop Development With C++ workload)
 - CUDA setting: Follow this link below https://blog.csdn.net/sinat_34770838/article/details/136946280 or https://qqmanlin.medium.com/cuda-%E8%88%87-cudnn-%E5%AE%89%E8%A3%9D-e982d92162af
+- Make sure CUDA version compares to CUDA toolkits version.
 
 
 ### Preparing your dataset - FFHQ
@@ -55,8 +56,10 @@ pip install -r requirements.txt
     ```
     python resolution_change.py
     ```
-    > [!NOTE]
-    > Please check the **source_dir** (1024x1024) and **target_dir** (256x256)
+  |:warning: WARNING |
+  |:-----------------|
+  | Please check the **source_dir** (1024x1024) and **target_dir** (256x256) are correct. |
+
 
 
 ### Training steps
@@ -74,11 +77,11 @@ Here, we provide step-by-step instructions to create a new EditGAN model. We use
 
 - **Step 1:** Train StyleGAN2 Encoder. 
 
-  - Specify location of StyleGAN2 checkpoint in the "stylegan_checkpoint" field in `experiments/encoder_face.json`.
+  - Specify location of StyleGAN2ADA checkpoint in the "stylegan_checkpoint" field in `experiments/encoder_face.json`.
 
-  - Check exp_dir, category, im_size etc.
+  - Check **exp_dir**, **category**, **im_size** etc.
 
-  - Specify path with training images (FFHQ) downloaded in **Step 0** in the "training_data_path" field in `experiments/encoder_face.json`.
+  - Specify path with training images (FFHQ 256x256) downloaded in **Step 0** in the "training_data_path" field in `experiments/encoder_face.json`.
 
   - Run `python train_encoder.py --exp experiments/encoder_face.json`.
 
@@ -86,22 +89,31 @@ Here, we provide step-by-step instructions to create a new EditGAN model. We use
 
 - **Step 2:** Train DatasetGAN.
 
-  - Specify "stylegan_checkpoint" field in `experiments/datasetgan_car.json`.
+  - Specify "stylegan_checkpoint" field in `experiments/datasetgan_face.json`.
 
-  - Download DatasetGAN training images and annotations from [drive](https://drive.google.com/drive/u/1/folders/17vn2vQOF1PQETb1ZgQZV6PlYCkSzSRSa) and fill in "annotation_mask_path" in `experiments/datasetgan_car.json`.
+  - Download DatasetGAN training images and annotations from [drive](https://drive.google.com/drive/u/1/folders/17vn2vQOF1PQETb1ZgQZV6PlYCkSzSRSa) and fill in "annotation_mask_path" in `experiments/datasetgan_face.json`.
 
   - Embed DatasetGAN training images in latent space using
 
     ```
-    python train_encoder.py --exp experiments/encoder_car.json --resume *encoder checkppoint* --testing_path data/annotation_car_32_clean --latent_sv_folder model_encoder/car_batch_8_loss_sampling_train_stylegan2/training_embedding --test True
+    python train_encoder.py --exp experiments/encoder_face.json --resume *encoder checkppoint* --latent_sv_folder ./checkpoint/encoder_pretrain/training_embedding --test True
+    ```
+    eg: 
+    ```
+    python train_encoder.py --exp experiments/encoder_face.json --resume ./checkpoint/encoder_pretrain/checkpoint/BEST_loss2.6380159854888916.pth --testing_path ./data/annotation_face_32_clean --latent_sv_folder ./checkpoint/encoder_pretrain/training_embedding --test True
     ```
 
-    and complete "optimized_latent_path" in `experiments/datasetgan_car.json`.
+    |:warning: WARNING |
+    |:-----------------|
+    | If the folder not exist, you can create manually by yourself. |
+    - "annotation_face_32_clean" for embedding training images in latent space.
+
+    and complete "optimized_latent_path" in `experiments/datasetgan_face.json`.
 
   - Train DatasetGAN (interpreter branch for segmentation) via
 
     ```
-    python train_interpreter.py --exp experiments/datasetgan_car.json
+    python train_interpreter.py --exp experiments/datasetgan_face.json
     ```
 
 - **Step 3:** Run the app.
@@ -117,6 +129,12 @@ Here, we provide step-by-step instructions to create a new EditGAN model. We use
   - Specify the "stylegan_checkpoint", "encoder_checkpoint", "classfier_checkpoint", "datasetgan_testimage_embedding_path" fields in `experiments/tool_car.json`.
 
   - Run the app via `python run_app.py`.
+
+### Training Times
+- Training in RTX 4080
+| Model | StyleGAN Encoder     |
+| ----- | ---------------------- |
+| Times | 3 days 17 hrs 53 mins |
 
 ### Inference
 
