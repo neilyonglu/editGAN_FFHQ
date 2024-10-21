@@ -132,8 +132,9 @@ Here, we provide step-by-step instructions to create a new EditGAN model. We use
 
 ### Training Times
 - Training in RTX 4080
-| Model | StyleGAN Encoder     |
-| ----- | ---------------------- |
+
+| Model |   StyleGAN Encoder    |
+| ----- | --------------------- |
 | Times | 3 days 17 hrs 53 mins |
 
 ### Inference
